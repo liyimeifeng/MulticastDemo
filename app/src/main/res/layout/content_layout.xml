@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:layout_marginTop="16dp"
+        android:id="@+id/activity_main_receive_info"
+        android:text="接受内容显示区"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+</FrameLayout>
