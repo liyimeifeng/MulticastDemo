@@ -17,19 +17,28 @@ import java.util.List;
 
 public class RecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final static String TAG = "RecycleAdapter";
-    private List<String> contents = new ArrayList<>();
+    private List<String> contents ;
     private List<String> ip_lists;
 
     public RecycleAdapter(List<String> ip,List<String> contents){
         Log.i(TAG, "RecycleAdapter: ");
         this.contents = contents;
         this.ip_lists = ip;
+        notifyDataSetChanged();   //立即通知刷新recyclerview
     }
 
-    public RecycleAdapter(List<String> contents){
-        this.contents = contents;
-    }
 
+    public void clearData(){
+//        contents.removeAll(contents.subList());
+//        ip_lists.removeAll()
+        contents.clear();
+        ip_lists.clear();
+        notifyItemMoved(0,ip_lists.size());         //通知清除数据，试过并没有什么卵用
+        notifyItemRangeRemoved(0,contents.size());
+        notifyItemRangeChanged(0,contents.size());
+        notifyDataSetChanged();   //立即通知刷新recyclerview，important！！！！！
+
+    }
 //    public void addAll(List<String> con) {
 //        this.contents.addAll(con);
 //    }

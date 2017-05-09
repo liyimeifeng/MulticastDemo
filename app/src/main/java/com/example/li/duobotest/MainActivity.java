@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    private Button mSendButton;
+    private Button mSendButton,mClearButton;
     private EditText mSendInfoView;
     private TextView  mReceiveInfoView;
     private RecyclerView mRecycleView;
@@ -47,8 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         allowMulticast();
         mSendButton = (Button)findViewById(R.id.activity_main_send);
+        mClearButton = (Button)findViewById(R.id.activity_main_clear);
         mSendInfoView = (EditText) findViewById(R.id.activity_main_send_info);
         mSendButton.setOnClickListener(this);
+        mClearButton.setOnClickListener(this);
         mRecycleView = (RecyclerView)findViewById(R.id.activity_main_recycleView);
         final LinearLayoutManager manager = new LinearLayoutManager(this);
         mRecycleView.setLayoutManager(manager);
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         multicastLock.release();
     }
 
-    //打开设备多播锁，大部分手机默认是不打开，省电
+    //打开设备多播锁，大部分手机默认是不打
     private void allowMulticast(){
         WifiManager wifiManager=(WifiManager)getSystemService(Context.WIFI_SERVICE);
         multicastLock=wifiManager.createMulticastLock("multicast.test");
@@ -76,6 +78,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
              case R.id.activity_main_send:
                  sendInfo = mSendInfoView.getText().toString();
                  initBroad();
+                 break;
+             case R.id.activity_main_clear:
+                 if (mAdapter != null){
+                     mAdapter.clearData();
+                 }
                  break;
          }
     }
@@ -101,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                    mSocket.joinGroup(new InetSocketAddress(group,PORT),NetworkInterface.getByInetAddress(group));
 //                    mSocket.joinGroup(new InetSocketAddress(InetAddress.getByName("224.0.0.251"),MDNS_PORT),NetworkInterface.getByInetAddress(group));
                     //每一个报文最多被路由转发n次，当数字变成0时，该报文被丢弃
-                    mSocket.setTimeToLive(4);
+                    mSocket.setTimeToLive(10);
                     //设定UDP报文（内容、内容长度、多播组、端口号）
                     DatagramPacket packet = new DatagramPacket(buff, buff.length, group, PORT);
                     mSocket.send(packet);
