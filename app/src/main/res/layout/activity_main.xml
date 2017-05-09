@@ -16,11 +16,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="这是一条要发送的内容" />
-    <Button
-        android:id="@+id/activity_main_send"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="点击发送"/>
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/activity_main_send"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="点击发送"/>
+        <Button
+            android:id="@+id/activity_main_clear"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="清除数据"/>
+    </LinearLayout>
+
 
     <!--<TextView-->
         <!--android:layout_marginTop="16dp"-->
