@@ -43,14 +43,12 @@ public class RecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Log.i(TAG, "onBindViewHolder: ");
         if (holder instanceof MyViewHolder){
             MyViewHolder viewHolder = (MyViewHolder)holder;
-            Log.i(TAG, "----------》设置信息 + contents--" + contents + "position--" + position) ;
             viewHolder.mTextView.setText("收到来自" + ip_lists.get(position) + "的消息："+ contents.get(position));
         }
     }
 
     @Override
     public int getItemCount() {
-        Log.i(TAG, "getItemCount: ------>个数是" + contents.size());
         return contents.size();
     }
 
