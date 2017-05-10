@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
              case R.id.activity_main_send:
                  sendInfo = mSendInfoView.getText().toString();
                  initBroad();
+                 realMulticastGroup = getBroadcast(getIPAddress());    //得到真正的组播地址
                  break;
              case R.id.activity_main_clear:
                  if (mAdapter != null){
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 NetworkInterface singleInterface = networkInterface.nextElement();
                 for (Enumeration<InetAddress> ipAddress = singleInterface.getInetAddresses();ipAddress.hasMoreElements();){
                     inetAddress = ipAddress.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && (singleInterface.getDisplayName().contains("wlan0"))){
+                    if (!inetAddress.isLoopbackAddress() && (singleInterface.getDisplayName().contains("wlan0"))){  //获取网络接口的显示名称
                         //此处注意是否有多个IP
                         myAddress = inetAddress;
 
@@ -136,12 +137,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (InterfaceAddress inetAddress : address){
                 iAddr = inetAddress.getBroadcast();
             }
+
         } catch (SocketException e) {
             e.printStackTrace();
         }
         Log.e(TAG, "getBroadcast: ----------》》》》》"+ iAddr );
-        realMulticastGroup = getBroadcast(getIPAddress());
-        return realMulticastGroup;
+        return iAddr;
     }
 
     /**
