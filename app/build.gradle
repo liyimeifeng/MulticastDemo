@@ -27,5 +27,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:recyclerview-v7:25.+'
     testCompile 'junit:junit:4.12'
+    //mdns即多播dns，主要处理情况：双方不知道对方的ip地址，通过DHCP协议动态分配ip地址，JmDNS即实现mdns的第三方库
+    //mdns使用的组播地址为：224.0.0.251（ipv6：FF02::FB）端口为5353，mdns是局域网内部的，每个进入局域网的主机，
+    //如果开启了mdns服务，都会向局域网内的所有主机组播一个消息
     compile group: 'javax.jmdns', name: 'jmdns', version: '3.4.1'
 }
