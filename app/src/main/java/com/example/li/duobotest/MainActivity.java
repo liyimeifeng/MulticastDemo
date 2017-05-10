@@ -19,10 +19,13 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.InterfaceAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -87,8 +90,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
          }
     }
 
-    //初始化组播，发送信息
-    public void initBroad(){
+    /**
+     * 手机自身作为热点用常用的获取IP的方法(判断WIFI的enable)无法获取到自身Ip；
+     * 解决办法：获取接口下个各个赋值的IP,此赋值可以是USB WLAN 3G等，但有的手机厂商修改了此赋值名导致无法获取
+     * @return
+     */
+    private static InetAddress getIPAddress(){
+        InetAddress inetAddress =null;
+        InetAddress myAddress = null;
+        try {
+            for (Enumeration<NetworkInterface> networkInterface = NetworkInterface.getNetworkInterfaces(); networkInterface.hasMoreElements();){
+                NetworkInterface singleInterface = networkInterface.nextElement();
+                for (Enumeration<InetAddress> ipAddress = singleInterface.getInetAddresses();ipAddress.hasMoreElements();){
+                    inetAddress = ipAddress.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && (singleInterface.getDisplayName().contains("wlan0"))){
+                        //此处注意是否有多个IP
+                        myAddress = inetAddress;
+
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        Log.e(TAG, "getIPAddress: ============>" + myAddress );
+        return myAddress;
+    }
+
+
+    /**
+     * 根据getIPAddress方法获取的自身IP来获取真正的组播地址，测试解决作为热点时无法发送组播的问题
+     * 问题：但是获取到的地址即192.168.XX不可能作为组播地址，IPv4组播地址范围要求是224.0.0.0到239.255.255.255
+     * @param inetaddress
+     * @return
+     */
+    private InetAddress getBroadcast(InetAddress inetaddress){
+        if (inetaddress == null){
+            return null;
+        }
+        NetworkInterface temp ;
+        InetAddress iAddr = null;
+        try {
+            temp = NetworkInterface.getByInetAddress(inetaddress);
+            List<InterfaceAddress> address = temp.getInterfaceAddresses();
+            for (InterfaceAddress inetAddress : address){
+                iAddr = inetAddress.getBroadcast();
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        Log.e(TAG, "getBroadcast: ----------》》》》》"+ iAddr );
+        realMulticastGroup = getBroadcast(getIPAddress());
+        return realMulticastGroup;
+    }
+
+    /**
+     * 经测试，将赋值后的realMulticastGroup替换组播收、发UDP数据的构造函数参数group，但不改变sokcet join的group，手机作为热点收发组播即可实现
+     * 但是经证实得到的192.168.43.255是广播地址，所以依旧不能实现自己作为热点收发组播
+     */
+    private InetAddress realMulticastGroup;
+
+    /**
+     * 发送组播
+     */
+    private void initBroad(){
         new Thread(){
             @Override
             public void run() {
@@ -103,10 +168,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //加入多播组，发送方与接收方处于同一组时，接收方可抓取多播报文信息
                     mSocket.joinGroup(group);
                     /**
-                     * 下面方法把自己作为热点打开，然后开始收发组播，测试不起作用
+                     * 把自己作为热点打开收发组播，测试下面方法，依旧不可行
                      */
 //                    mSocket.joinGroup(new InetSocketAddress(group,PORT),NetworkInterface.getByInetAddress(group));
-//                    mSocket.joinGroup(new InetSocketAddress(InetAddress.getByName("224.0.0.251"),MDNS_PORT),NetworkInterface.getByInetAddress(group));
                     //每一个报文最多被路由转发n次，当数字变成0时，该报文被丢弃
                     mSocket.setTimeToLive(10);
                     //设定UDP报文（内容、内容长度、多播组、端口号）
@@ -123,20 +187,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }.start();
     }
 
-    //接受信息
-    public void receiveBroad(){
+    /**
+     * 接受组播
+     */
+    private void receiveBroad(){
         new Thread(){
             @Override
             public void run() {
                 super.run();
                 try {
                     InetAddress group = InetAddress.getByName(IP_ADDRESS);
+                    Log.e(TAG, "group-------->" + group );
                     if ( !group.isMulticastAddress()){
                         throw new Exception("请使用多播地址");
                     }
                     while(true){
                         MulticastSocket receiveCast = new MulticastSocket(PORT);
                         receiveCast.joinGroup(group);
+
+                        /**
+                         * 测试下面的join方法，仍旧不可行
+                         */
+//                        receiveCast.joinGroup(new InetSocketAddress(group,PORT),NetworkInterface.getByInetAddress(group));
+
                         byte[] buff = new byte[1024];
                         DatagramPacket packet = new DatagramPacket(buff,buff.length,group,PORT);
                         receiveCast.receive(packet);//此方法是个阻塞方法，一直等条件触发
